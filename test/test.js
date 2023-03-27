@@ -23,13 +23,16 @@ const hre = require("hardhat");
         //safeImpl = await safeFactoryContract.deploySafe();
     
         // 部署 SafeProxy 合約
-        safeProxy = await safeFactory.deploySafe();
-        //tx = await safeFactory.deploySafe();
+        //safeProxy = await safeFactory.deploySafe();
+        tx = await safeFactory.deploySafeProxy();
         //console.log(tx);
-        
-        //const receipt = await tx.wait();
-        //console.log(receipt);
-        //safeProxy = receipt.events[0].address;
+        const receipt = await tx.wait();
+        const events = receipt.events.filter(
+            (event) => event.event === "SafeProxy"
+        );
+        safeProxyContract = events[0].args.ProxyPosition;
+        UpgradableProxyContract = await ethers.getContractFactory("UpgradableProxy");
+        upgradableProxy = UpgradableProxyContract.attach(safeProxyContract);
         //console.log(safeProxy)
     });
     describe("Deployment", function () {
@@ -37,13 +40,13 @@ const hre = require("hardhat");
             safeImpl = await ethers.getContractAt("SafeUpgradeable", safeFactory.getSafeImplementation())
             expect(await safeImpl.getOwner()).to.equal(owner.address);
         })
-        /*
+        
         it('the caller of deploySafeProxy is the owner of the deployed Proxy', async function () {
-            //console.log(safeProxy)
-            safeProxy1 = await ethers.getContractAt("UpgradableProxy", safeProxy)
-            expect(await safeProxy1.proxyOwner()).to.equal(owner.address);
+            //safeProxy = await ethers.getContractAt("SafeUpgradeable", safeProxyContract)
+            //console.log(safeProxy.proxyOwner());
+            expect(await upgradableProxy.proxyOwner()).to.equal(owner.address);;
         })
-        */
+        
 
     });
     

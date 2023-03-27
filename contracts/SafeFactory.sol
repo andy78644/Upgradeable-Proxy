@@ -13,7 +13,7 @@ contract SafeFactory {
     address safeImplementation;
     //address originImplementation;
     //SafeUpgradeable public SafeContract;
-    event SafeProxy(address);
+    event SafeProxy(address ProxyPosition);
     constructor() {
         owner = msg.sender;
         safeImplementation = deploySafe();

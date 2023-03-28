@@ -8,24 +8,16 @@ const hre = require("hardhat");
   
   describe("Lab4", function () {
     beforeEach(async function () {
-        // 部署 SafeUpgradeable 合約
-        //safeImpl = await ethers.getContractFactory("SafeUpgradeable");
-        //safeImpl = await safeImpl.deploy();
-        //safeImpl = await safeImpl.init();
-    
         // 取得 owner 和 user1 的帳號
-        [owner, addr1] = await ethers.getSigners();
+        [owner, addr1, addr2] = await ethers.getSigners();
     
         // 部署 SafeFactory 合約
         const safeFactoryContract = await ethers.getContractFactory("SafeFactory");
         safeFactory = await safeFactoryContract.deploy();
         await safeFactory.deployed();
-        //safeImpl = await safeFactoryContract.deploySafe();
     
         // 部署 SafeProxy 合約
-        //safeProxy = await safeFactory.deploySafe();
         tx = await safeFactory.deploySafeProxy();
-        //console.log(tx);
         const receipt = await tx.wait();
         const events = receipt.events.filter(
             (event) => event.event === "SafeProxy"
@@ -33,7 +25,19 @@ const hre = require("hardhat");
         safeProxyContract = events[0].args.ProxyPosition;
         UpgradableProxyContract = await ethers.getContractFactory("UpgradableProxy");
         upgradableProxy = UpgradableProxyContract.attach(safeProxyContract);
-        //console.log(safeProxy)
+
+        // 透過 SafeProxy 去連接 SafeContract 的 function
+        ProxySafe = await ethers.getContractAt("SafeUpgradeable", safeProxyContract);
+
+        // 部署 dieToken 並且分別轉入 addr1 和 addr2
+        Token = await hre.ethers.getContractFactory("DIEToken", addr1);
+        dieToken = await Token.deploy(100000);
+        await dieToken.deployed();
+        dieToken.connect(addr1).transfer(addr2.address, 10000)
+        
+        // 分別讓 addr1 和 addr2 去 approve ProxySafe 存取資產
+        await dieToken.connect(addr1).approve(ProxySafe.address, 50000);
+        await dieToken.connect(addr2).approve(ProxySafe.address, 10000);
     });
     describe("Deployment", function () {
         it('Implementation contract owner should be same as safeFactory owner', async function () {
@@ -46,8 +50,27 @@ const hre = require("hardhat");
             //console.log(safeProxy.proxyOwner());
             expect(await upgradableProxy.proxyOwner()).to.equal(owner.address);;
         })
-        
+    });
+    describe("tax fee", function () {
+        it('should deposit DIEToken', async function () {
+            await ProxySafe.connect(addr1).deposit(50000, dieToken.address);
+            await ProxySafe.connect(addr2).deposit(10000, dieToken.address);
+            //console.log(await dieToken.connect(owner).balanceOf(ProxySafe.address));
+            //await ProxySafe.connect(addr1).balanceof(dieToken.address);
+            expect(await dieToken.balanceOf(addr1.address)).to.equal(40000);
+            expect(await dieToken.balanceOf(addr2.address)).to.equal(0);
 
+        })
+        
+        it('Should Withdraw DIEToken and minus tax fee', async function () {
+            await ProxySafe.connect(addr1).deposit(50000, dieToken.address);
+            await ProxySafe.connect(addr2).deposit(10000, dieToken.address);
+            await ProxySafe.connect(addr1).withdraw(40000, dieToken.address);
+            await ProxySafe.connect(addr2).withdraw(5000, dieToken.address);
+      
+            expect(await dieToken.balanceOf(addr1.address)).to.equal(80000);
+            expect(await dieToken.balanceOf(addr2.address)).to.equal(5000);
+        })
     });
     
     

@@ -7,19 +7,15 @@ pragma solidity ^0.8.9;
 //import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./UpgradableProxy.sol";
 import "./SafeUpgradeable.sol";
+import "./SafeContract.sol";
 
 contract SafeFactory {
     address owner;
     address safeImplementation;
-    //address originImplementation;
-    //SafeUpgradeable public SafeContract;
     event SafeProxy(address ProxyPosition);
+    event DeploySafe(address SafePosition);
     constructor() {
         owner = msg.sender;
-        safeImplementation = deploySafe();
-        //safeImplementation = originImplementation;
-        //setSafeImplementation(originImplementation);
-
     }
 
     function updateSafeImplementation(address newImplementation) external onlyOwner {
@@ -31,17 +27,22 @@ contract SafeFactory {
     }
 
     function deploySafeProxy()  external  onlyOwner returns (address) {
-        UpgradableProxy myProxy = new UpgradableProxy();
-        myProxy.initialize(msg.sender, safeImplementation);
-        //return address(myProxy);
+        UpgradableProxy myProxy = new UpgradableProxy(msg.sender, safeImplementation);
+        //UpgradableProxy myProxy = new UpgradableProxy();
+        //myProxy.upgradeTo(safeImplementation);
         emit SafeProxy(address(myProxy));
+
         return address(myProxy);
     }
 
-    function deploySafe() public onlyOwner returns (address) {
-        SafeUpgradeable safe = new SafeUpgradeable();
-        safe.initialize(msg.sender);
+    function deploySafe() external onlyOwner returns (address) {
+        Safe safe = new Safe(msg.sender);
+        emit DeploySafe(address(safe));
         return address(safe);
+    }
+
+    function factoryOwner() public view returns (address){
+        return owner;
     }
 
     modifier onlyOwner() {

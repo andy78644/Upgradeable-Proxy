@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 //import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
-contract UpgradableProxy is Proxy, Initializable {
+contract UpgradableProxy is Proxy {
 
     //address delegate;
     //address owner = msg.sender;
@@ -15,24 +15,15 @@ contract UpgradableProxy is Proxy, Initializable {
     bytes32 private constant proxyOwnerPosition = keccak256("org.zeppelinos.proxy.owner"); 
     bytes32 private constant implementationPosition = keccak256("org.zeppelinos.proxy.implementation");
     
-    
-
-    function initialize(address _owner, address Implementation) public initializer {
+    constructor(address _owner, address Implementation) {
         setUpgradeabilityOwner(_owner);
         setImplementation(Implementation);
     }
     
-
     modifier onlyProxyOwner {
-        address Owner = proxyOwner();
-        require(
-            msg.sender == Owner,
-            "only owner can call this function"
-        );
+        require(msg.sender == proxyOwner());
         _;
     }
-
-
 
     function upgradeTo(address newImplementation) public onlyProxyOwner {   
         address currentImplementation = _implementation();   
@@ -58,6 +49,7 @@ contract UpgradableProxy is Proxy, Initializable {
         assembly {
             sstore(position, newImplementation)
         } 
+        (bool success, bytes memory result) = newImplementation.delegatecall(abi.encodeWithSignature("initialize(address)", proxyOwner()));
     } 
     function proxyOwner() public view returns(address owner) {   
         bytes32 position = proxyOwnerPosition;   

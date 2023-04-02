@@ -7,11 +7,12 @@ pragma solidity ^0.8.9;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
-contract SafeUpgradeable is Initializable {
+contract Safe {
     address public owner;
     mapping (address => mapping(address => uint256)) public balances;
     mapping (address => uint256) public fees;
-    function initialize(address _owner) external initializer {
+    
+    constructor(address _owner) {
         owner = _owner;
     }
 
@@ -40,7 +41,6 @@ contract SafeUpgradeable is Initializable {
     function balanceOf(address token) public view returns (uint256){
         return balances[msg.sender][token];
     }
-
 
     function takeFee(address token) 
         public 

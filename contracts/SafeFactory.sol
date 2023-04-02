@@ -4,7 +4,6 @@ pragma solidity ^0.8.9;
 // Uncomment this line to use console.log
 // import "hardhat/console.sol";
 
-//import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./UpgradableProxy.sol";
 import "./SafeUpgradeable.sol";
 import "./SafeContract.sol";
@@ -12,8 +11,8 @@ import "./SafeContract.sol";
 contract SafeFactory {
     address owner;
     address safeImplementation;
-    event SafeProxy(address ProxyPosition);
-    event DeploySafe(address SafePosition);
+    event SafeProxy(address ProxyPosition); //to show deploy proxy
+    event DeploySafe(address SafePosition); //to show deploy original safe contract
     constructor() {
         owner = msg.sender;
     }
@@ -28,10 +27,7 @@ contract SafeFactory {
 
     function deploySafeProxy()  external  onlyOwner returns (address) {
         UpgradableProxy myProxy = new UpgradableProxy(msg.sender, safeImplementation);
-        //UpgradableProxy myProxy = new UpgradableProxy();
-        //myProxy.upgradeTo(safeImplementation);
         emit SafeProxy(address(myProxy));
-
         return address(myProxy);
     }
 
@@ -41,6 +37,7 @@ contract SafeFactory {
         return address(safe);
     }
 
+    //show Factory owner
     function factoryOwner() public view returns (address){
         return owner;
     }

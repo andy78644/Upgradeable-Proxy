@@ -2,22 +2,16 @@
 pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/proxy/Proxy.sol";
-//import "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
-//import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 
 contract UpgradableProxy is Proxy {
-
-    //address delegate;
-    //address owner = msg.sender;
 
     bytes32 private constant proxyOwnerPosition = keccak256("org.zeppelinos.proxy.owner"); 
     bytes32 private constant implementationPosition = keccak256("org.zeppelinos.proxy.implementation");
     
     constructor(address _owner, address Implementation) {
-        setUpgradeabilityOwner(_owner);
-        setImplementation(Implementation);
+        setUpgradeabilityOwner(_owner);     //set the owner of the proxy contract
+        setImplementation(Implementation);  //set the implementaion which point by this proxy contract
     }
     
     modifier onlyProxyOwner {
@@ -44,6 +38,7 @@ contract UpgradableProxy is Proxy {
         }
     }
 
+    //set implemntation contract and call its delegate call
     function setImplementation(address newImplementation) internal {   
         bytes32 position = implementationPosition;   
         assembly {
@@ -51,12 +46,15 @@ contract UpgradableProxy is Proxy {
         } 
         (bool success, bytes memory result) = newImplementation.delegatecall(abi.encodeWithSignature("initialize(address)", proxyOwner()));
     } 
+
+    //show the owner of this proxy contract
     function proxyOwner() public view returns(address owner) {   
         bytes32 position = proxyOwnerPosition;   
         assembly {
             owner := sload(position)
         } 
     } 
+
     function setUpgradeabilityOwner(address newProxyOwner) internal {   
         bytes32 position = proxyOwnerPosition;   
         assembly {

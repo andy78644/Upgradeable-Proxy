@@ -22,6 +22,7 @@ contract SafeUpgradeable is Initializable {
         );
         _;
     }
+
     function deposit(uint256 amount, address token) public {
         require(amount > 0, "Deposit amount must be greater than zero");
         require(IERC20(token).balanceOf(msg.sender) >= amount, "Insufficient balance");
@@ -37,11 +38,12 @@ contract SafeUpgradeable is Initializable {
         balances[msg.sender][token] -= amount;
     }
 
+    //check the user's asset in contract
     function balanceOf(address token) public view returns (uint256){
         return balances[msg.sender][token];
     }
 
-
+    //take all fee from contract only by owner
     function takeFee(address token) 
         public 
         onlyOwner
@@ -50,6 +52,7 @@ contract SafeUpgradeable is Initializable {
         IERC20(token).transfer(owner, fees[token]);
     }
 
+    //get the owner of contract
     function getOwner()
         public view
         returns (address)

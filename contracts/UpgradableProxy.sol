@@ -20,7 +20,6 @@ contract UpgradableProxy is Proxy {
     }
 
     function upgradeTo(address newImplementation) public onlyProxyOwner {   
-        address currentImplementation = _implementation();   
         setImplementation(newImplementation); 
     } 
 
@@ -44,7 +43,8 @@ contract UpgradableProxy is Proxy {
         assembly {
             sstore(position, newImplementation)
         } 
-        (bool success, bytes memory result) = newImplementation.delegatecall(abi.encodeWithSignature("initialize(address)", proxyOwner()));
+        (bool success, ) = newImplementation.delegatecall(abi.encodeWithSignature("initialize(address)", proxyOwner()));
+        require(success, "initialize funcion fail");
     } 
 
     //show the owner of this proxy contract

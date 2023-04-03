@@ -1,4 +1,4 @@
-# Simple ERC20 Safe
+# Upgradeable Proxy 
 ## Prerequisites
 ### Install those at local
 * nodejs - v18.12.1

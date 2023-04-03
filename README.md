@@ -1,4 +1,4 @@
-# Proxy Safe
+# Simple ERC20 Safe
 ## Prerequisites
 ### Install those at local
 * nodejs - v18.12.1
@@ -10,8 +10,15 @@
 npm install
 npx hardhat node
 ```
-Please modify .env.example to .env and complete the component in it
 ### test
 ```shell=
-npx hardhat --network localhost test test/test.js
+npx hardhat test  
 ```
+
+
+## Result
+### gas reporter
+![](https://i.imgur.com/19zcaFq.png)
+
+### solidity coverage
+![](https://i.imgur.com/SCMF9KD.png)
